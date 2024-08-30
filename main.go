@@ -18,11 +18,22 @@ func main() {
 
 	BASE_URL := arg[0]
 
-	pages := make(map[string]int)
+	const maxConcurrency = 10
+	cfg, err := configure(BASE_URL, maxConcurrency)
+	if err != nil {
+		fmt.Printf("error - configure: %v", err)
+		return
+	}
 
-	crawlPage(BASE_URL, BASE_URL, pages)
+	fmt.Printf("beginning crawl of: %s\n", BASE_URL)
 
-	for normalizedRawCurrentURL, count := range pages {
+	// Kicks off the crawling process with initial goroutine and url
+	cfg.wg.Add(1)
+	go cfg.crawlPage(BASE_URL)
+	// Ensures the program doesn't exit before all goroutines are done
+	cfg.wg.Wait()
+
+	for normalizedRawCurrentURL, count := range cfg.pages {
 		fmt.Printf("%s: %d\n", normalizedRawCurrentURL, count)
 	}
 }
