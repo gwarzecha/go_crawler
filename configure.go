@@ -12,6 +12,7 @@ type config struct {
 	mu                 *sync.Mutex
 	concurrencyControl chan struct{}
 	wg                 *sync.WaitGroup
+	maxPages           int
 }
 
 // Method on the config struct, can modify the config instance it's called on
@@ -28,8 +29,14 @@ func (cfg *config) addPageVisit(normalizedRawCurrentURL string) (isFirst bool) {
 	return true
 }
 
+func (cfg *config) pagesLen() int {
+	cfg.mu.Lock()
+	defer cfg.mu.Unlock()
+	return len(cfg.pages)
+}
+
 // Initializes and returns a new config struct, used to manage crawler's state and control concurrency
-func configure(rawBaseURL string, maxConcurrency int) (*config, error) {
+func configure(rawBaseURL string, maxConcurrency int, maxPages int) (*config, error) {
 	baseURL, err := url.Parse(rawBaseURL)
 	if err != nil {
 		fmt.Printf("failed to parse base url: %v", err)
@@ -41,5 +48,6 @@ func configure(rawBaseURL string, maxConcurrency int) (*config, error) {
 		mu:                 &sync.Mutex{},
 		concurrencyControl: make(chan struct{}, maxConcurrency),
 		wg:                 &sync.WaitGroup{},
+		maxPages:           maxPages,
 	}, nil
 }
