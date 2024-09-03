@@ -47,7 +47,5 @@ func main() {
 	// Ensures the program doesn't exit before all goroutines are done
 	cfg.wg.Wait()
 
-	for normalizedRawCurrentURL, count := range cfg.pages {
-		fmt.Printf("%s: %d\n", normalizedRawCurrentURL, count)
-	}
+	printReport(cfg.pages, BASE_URL)
 }
